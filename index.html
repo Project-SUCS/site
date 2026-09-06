@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project-SUCS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #0d0d0d;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .console-output {
+      background-color: #000;
+      padding: 20px;
+      min-height: 400px;
+      margin-bottom: 20px;
+    }
+    .output-line { margin-bottom: 8px; word-wrap: break-word; white-space: pre-wrap; }
+    .link { color: #00ffff; text-decoration: none; cursor: pointer; border-bottom: 1px dashed #00ffff; }
+    .link:hover { background-color: #003333; }
+    .command-input { display: flex; align-items: center; }
+    .prompt { color: #00ff00; margin-right: 10px; font-weight: bold; }
+    #cmd-input {
+      flex: 1; background: transparent; border: none; color: #00ff00;
+      font-family: 'Courier New', monospace; font-size: 1rem; outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="console-output" id="output"></div>
+    <div class="command-input">
+      <span class="prompt">$</span>
+      <input type="text" id="cmd-input" placeholder="Enter the command..." autofocus autocomplete="off">
+    </div>
+  </div>
+
+  <script>
+    const commandDatabase = [
+      {
+        command: "help",
+        output: "Available commands:\n" +
+          "    help - Show this list\n" +
+          "    clear - Clear the console\n" +
+          "    about - Project information\n" +
+          "    GitHub - Author's contacts\n" +
+          "    version - Project version\n" +
+          "    project status - Project parts status"
+      },
+      {
+        command: "clear",
+        output: "CLEAR"
+      },
+      {
+        command: "about",
+        output: "Project-SUCS, meaning Super User Can Still, is an ambitious initiative intended for reimagining Android. It comprises SUCS-AOSP, Core SUC, ET-L, and many others!"
+      },
+      {
+        command: "github",
+        output: "GitHub: GitHub",
+        links: [
+          { label: "GitHub", url: "https://github.com/Project-SUCS" }
+        ]
+      },
+      {
+        command: "version",
+        output: "Project-SUCS v2026.08.31.1.3.1"
+      },
+      {
+        command: "project status",
+        output: "Status:\n" +
+          "    SUCS-AOSP: There's no space on my disk :(\n" +
+          "    Core SUC: Impossible without SUCS-AOSP :(\n" +
+          "    ET-L: In the process ॰‿॰\n" +
+          "    SUCS_Keyboard: Development has already begun, but is not yet ready"
+      }
+    ];
+
+    const outputDiv = document.getElementById('output');
+    const cmdInput = document.getElementById('cmd-input');
+
+    function escapeRegex(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function parseLinks(text, links) {
+      if (!links || links.length === 0) return text;
+      let result = text;
+      links.forEach(link => {
+        const regex = new RegExp('(' + escapeRegex(link.label) + ')', 'g');
+        result = result.replace(
+          regex,
+          '<a href="' + link.url + '" class="link" target="_blank">' + link.label + '</a>'
+        );
+      });
+      return result;
+    }
+
+    function printLine(text, links) {
+      const line = document.createElement('div');
+      line.className = 'output-line';
+      if (links && links.length > 0) {
+        line.innerHTML = parseLinks(text, links);
+      } else {
+        line.textContent = text;
+      }
+      outputDiv.appendChild(line);
+      outputDiv.scrollTop = outputDiv.scrollHeight;
+    }
+
+    function init() {
+      printLine("Type 'help' for the list of commands");
+      printLine("");
+    }
+
+    cmdInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const raw = this.value.trim().replace(/\s+/g, ' ').toLowerCase();
+
+        if (raw) {
+          printLine("$ " + this.value);
+
+          const command = commandDatabase.find(c => c.command === raw);
+
+          if (command) {
+            if (command.output === "CLEAR") {
+              outputDiv.innerHTML = "";
+            } else {
+              printLine(command.output, command.links);
+            }
+          } else {
+            printLine("Command '" + this.value + "' not found. Enter 'help' for the list of commands.");
+          }
+        }
+
+        this.value = "";
+      }
+    });
+
+    // Click anywhere focuses the input
+    document.body.addEventListener('click', () => cmdInput.focus());
+
+    init();
+  </script>
+</body>
+</html>
